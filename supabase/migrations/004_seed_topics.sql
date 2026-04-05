@@ -1,0 +1,258 @@
+-- ============================================================
+-- CURRICULUM SEED — GCSE & A-Level Maths Topics
+-- Run AFTER 001_schema.sql
+-- ============================================================
+
+-- ============================================================
+-- GCSE MATHS — EDEXCEL (Foundation + Higher)
+-- ============================================================
+
+-- Number
+INSERT INTO topics (name, category, qualification, exam_board, tier, difficulty, estimated_sessions, order_index) VALUES
+('Place Value & Rounding', 'Number', 'GCSE', 'Edexcel', 'Foundation', 1, 1, 1),
+('Fractions, Decimals & Percentages', 'Number', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 2),
+('Ratio & Proportion', 'Number', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 3),
+('Powers & Roots', 'Number', 'GCSE', 'Edexcel', 'Foundation', 2, 1, 4),
+('Standard Form', 'Number', 'GCSE', 'Edexcel', 'Foundation', 3, 1, 5),
+('Indices & Surds', 'Number', 'GCSE', 'Edexcel', 'Higher', 3, 2, 6),
+('Upper & Lower Bounds', 'Number', 'GCSE', 'Edexcel', 'Higher', 3, 1, 7),
+
+-- Algebra
+('Simplifying Expressions', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 1, 1, 10),
+('Expanding & Factorising', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 11),
+('Solving Linear Equations', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 12),
+('Solving Simultaneous Equations', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 3, 2, 13),
+('Inequalities', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 2, 1, 14),
+('Sequences & nth Term', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 15),
+('Quadratic Equations', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 3, 3, 16),
+('Completing the Square', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 4, 2, 17),
+('Algebraic Fractions', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 4, 2, 18),
+('Functions & Inverse Functions', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 4, 2, 19),
+('Proof', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 4, 1, 20),
+
+-- Graphs
+('Straight Line Graphs (y=mx+c)', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 21),
+('Quadratic Graphs', 'Algebra', 'GCSE', 'Edexcel', 'Foundation', 3, 2, 22),
+('Other Graphs (cubic, reciprocal)', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 3, 2, 23),
+('Transformations of Graphs', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 4, 2, 24),
+('Equation of a Circle', 'Algebra', 'GCSE', 'Edexcel', 'Higher', 4, 1, 25),
+
+-- Ratio & Proportion
+('Direct & Inverse Proportion', 'Ratio & Proportion', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 30),
+('Percentage Change & Reverse %', 'Ratio & Proportion', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 31),
+('Speed, Distance, Time', 'Ratio & Proportion', 'GCSE', 'Edexcel', 'Foundation', 2, 1, 32),
+('Compound Interest & Depreciation', 'Ratio & Proportion', 'GCSE', 'Edexcel', 'Foundation', 3, 1, 33),
+('Exchange Rates & Best Buys', 'Ratio & Proportion', 'GCSE', 'Edexcel', 'Foundation', 2, 1, 34),
+
+-- Geometry & Measures
+('Area & Perimeter', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 1, 2, 40),
+('Circles (area, circumference, arc, sector)', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 41),
+('Volume & Surface Area', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 42),
+('Angles (parallel lines, polygons)', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 43),
+('Pythagoras'' Theorem', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 44),
+('Trigonometry (SOH CAH TOA)', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 3, 3, 45),
+('Transformations', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 46),
+('Constructions & Loci', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Foundation', 2, 1, 47),
+('Vectors', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Higher', 4, 2, 48),
+('Sine & Cosine Rules', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Higher', 4, 2, 49),
+('Circle Theorems', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Higher', 4, 2, 50),
+('Congruence & Similarity', 'Geometry & Measures', 'GCSE', 'Edexcel', 'Higher', 3, 2, 51),
+
+-- Probability & Statistics
+('Mean, Median, Mode, Range', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Foundation', 1, 1, 60),
+('Frequency Tables & Grouped Data', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 61),
+('Charts & Graphs (bar, pie, scatter)', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 62),
+('Probability (basic)', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Foundation', 2, 2, 63),
+('Probability (combined, tree diagrams)', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Foundation', 3, 2, 64),
+('Cumulative Frequency & Box Plots', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Higher', 3, 2, 65),
+('Histograms', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Higher', 4, 2, 66),
+('Conditional Probability', 'Probability & Statistics', 'GCSE', 'Edexcel', 'Higher', 4, 2, 67);
+
+-- ============================================================
+-- GCSE MATHS — AQA (Foundation + Higher)
+-- ============================================================
+INSERT INTO topics (name, category, qualification, exam_board, tier, difficulty, estimated_sessions, order_index) VALUES
+('Place Value & Rounding', 'Number', 'GCSE', 'AQA', 'Foundation', 1, 1, 1),
+('Fractions, Decimals & Percentages', 'Number', 'GCSE', 'AQA', 'Foundation', 2, 2, 2),
+('Ratio & Proportion', 'Number', 'GCSE', 'AQA', 'Foundation', 2, 2, 3),
+('Powers & Roots', 'Number', 'GCSE', 'AQA', 'Foundation', 2, 1, 4),
+('Standard Form', 'Number', 'GCSE', 'AQA', 'Foundation', 3, 1, 5),
+('Indices & Surds', 'Number', 'GCSE', 'AQA', 'Higher', 3, 2, 6),
+('Upper & Lower Bounds', 'Number', 'GCSE', 'AQA', 'Higher', 3, 1, 7),
+('Simplifying Expressions', 'Algebra', 'GCSE', 'AQA', 'Foundation', 1, 1, 10),
+('Expanding & Factorising', 'Algebra', 'GCSE', 'AQA', 'Foundation', 2, 2, 11),
+('Solving Linear Equations', 'Algebra', 'GCSE', 'AQA', 'Foundation', 2, 2, 12),
+('Solving Simultaneous Equations', 'Algebra', 'GCSE', 'AQA', 'Foundation', 3, 2, 13),
+('Inequalities', 'Algebra', 'GCSE', 'AQA', 'Foundation', 2, 1, 14),
+('Sequences & nth Term', 'Algebra', 'GCSE', 'AQA', 'Foundation', 2, 2, 15),
+('Quadratic Equations', 'Algebra', 'GCSE', 'AQA', 'Higher', 3, 3, 16),
+('Completing the Square', 'Algebra', 'GCSE', 'AQA', 'Higher', 4, 2, 17),
+('Algebraic Fractions', 'Algebra', 'GCSE', 'AQA', 'Higher', 4, 2, 18),
+('Functions & Inverse Functions', 'Algebra', 'GCSE', 'AQA', 'Higher', 4, 2, 19),
+('Proof', 'Algebra', 'GCSE', 'AQA', 'Higher', 4, 1, 20),
+('Straight Line Graphs (y=mx+c)', 'Algebra', 'GCSE', 'AQA', 'Foundation', 2, 2, 21),
+('Quadratic Graphs', 'Algebra', 'GCSE', 'AQA', 'Foundation', 3, 2, 22),
+('Other Graphs (cubic, reciprocal)', 'Algebra', 'GCSE', 'AQA', 'Higher', 3, 2, 23),
+('Transformations of Graphs', 'Algebra', 'GCSE', 'AQA', 'Higher', 4, 2, 24),
+('Equation of a Circle', 'Algebra', 'GCSE', 'AQA', 'Higher', 4, 1, 25),
+('Direct & Inverse Proportion', 'Ratio & Proportion', 'GCSE', 'AQA', 'Foundation', 2, 2, 30),
+('Percentage Change & Reverse %', 'Ratio & Proportion', 'GCSE', 'AQA', 'Foundation', 2, 2, 31),
+('Speed, Distance, Time', 'Ratio & Proportion', 'GCSE', 'AQA', 'Foundation', 2, 1, 32),
+('Compound Interest & Depreciation', 'Ratio & Proportion', 'GCSE', 'AQA', 'Foundation', 3, 1, 33),
+('Exchange Rates & Best Buys', 'Ratio & Proportion', 'GCSE', 'AQA', 'Foundation', 2, 1, 34),
+('Area & Perimeter', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 1, 2, 40),
+('Circles (area, circumference, arc, sector)', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 2, 2, 41),
+('Volume & Surface Area', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 2, 2, 42),
+('Angles (parallel lines, polygons)', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 2, 2, 43),
+('Pythagoras'' Theorem', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 2, 2, 44),
+('Trigonometry (SOH CAH TOA)', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 3, 3, 45),
+('Transformations', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 2, 2, 46),
+('Constructions & Loci', 'Geometry & Measures', 'GCSE', 'AQA', 'Foundation', 2, 1, 47),
+('Vectors', 'Geometry & Measures', 'GCSE', 'AQA', 'Higher', 4, 2, 48),
+('Sine & Cosine Rules', 'Geometry & Measures', 'GCSE', 'AQA', 'Higher', 4, 2, 49),
+('Circle Theorems', 'Geometry & Measures', 'GCSE', 'AQA', 'Higher', 4, 2, 50),
+('Congruence & Similarity', 'Geometry & Measures', 'GCSE', 'AQA', 'Higher', 3, 2, 51),
+('Mean, Median, Mode, Range', 'Probability & Statistics', 'GCSE', 'AQA', 'Foundation', 1, 1, 60),
+('Frequency Tables & Grouped Data', 'Probability & Statistics', 'GCSE', 'AQA', 'Foundation', 2, 2, 61),
+('Charts & Graphs (bar, pie, scatter)', 'Probability & Statistics', 'GCSE', 'AQA', 'Foundation', 2, 2, 62),
+('Probability (basic)', 'Probability & Statistics', 'GCSE', 'AQA', 'Foundation', 2, 2, 63),
+('Probability (combined, tree diagrams)', 'Probability & Statistics', 'GCSE', 'AQA', 'Foundation', 3, 2, 64),
+('Cumulative Frequency & Box Plots', 'Probability & Statistics', 'GCSE', 'AQA', 'Higher', 3, 2, 65),
+('Histograms', 'Probability & Statistics', 'GCSE', 'AQA', 'Higher', 4, 2, 66),
+('Conditional Probability', 'Probability & Statistics', 'GCSE', 'AQA', 'Higher', 4, 2, 67);
+
+-- ============================================================
+-- A-LEVEL MATHS — EDEXCEL
+-- ============================================================
+INSERT INTO topics (name, category, qualification, exam_board, tier, difficulty, estimated_sessions, order_index) VALUES
+-- Pure Maths Year 1
+('Algebra & Functions (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 2, 3, 1),
+('Quadratics (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 2, 2, 2),
+('Equations & Inequalities (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 2, 2, 3),
+('Graphs & Transformations (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 4),
+('Straight Line Graphs (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 2, 1, 5),
+('Circles (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 6),
+('Algebraic Methods (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 7),
+('Binomial Expansion (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 8),
+('Trigonometry (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 3, 9),
+('Vectors (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 10),
+('Differentiation (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 3, 11),
+('Integration (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 3, 12),
+('Exponentials & Logarithms (Year 1)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 13),
+-- Pure Maths Year 2
+('Algebraic & Partial Fractions (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 2, 14),
+('Functions & Modulus (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 2, 15),
+('Sequences & Series (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 16),
+('Binomial Expansion (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 2, 17),
+('Radians & Trig Identities (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 3, 18),
+('Further Differentiation (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 3, 19),
+('Further Integration (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 5, 4, 20),
+('Differential Equations (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 5, 3, 21),
+('Numerical Methods (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 2, 22),
+('Vectors (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 2, 23),
+('Parametric Equations (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 4, 2, 24),
+('Proof by Contradiction (Year 2)', 'Pure Maths', 'A-Level', 'Edexcel', NULL, 3, 1, 25),
+-- Statistics
+('Statistical Sampling', 'Statistics', 'A-Level', 'Edexcel', NULL, 2, 1, 30),
+('Data Presentation & Interpretation', 'Statistics', 'A-Level', 'Edexcel', NULL, 2, 2, 31),
+('Probability', 'Statistics', 'A-Level', 'Edexcel', NULL, 3, 2, 32),
+('Statistical Distributions (Binomial)', 'Statistics', 'A-Level', 'Edexcel', NULL, 3, 2, 33),
+('Statistical Hypothesis Testing', 'Statistics', 'A-Level', 'Edexcel', NULL, 4, 3, 34),
+('Normal Distribution', 'Statistics', 'A-Level', 'Edexcel', NULL, 4, 3, 35),
+('Conditional Probability & Correlation', 'Statistics', 'A-Level', 'Edexcel', NULL, 4, 2, 36),
+-- Mechanics
+('Quantities & Units', 'Mechanics', 'A-Level', 'Edexcel', NULL, 1, 1, 40),
+('Kinematics (constant acceleration)', 'Mechanics', 'A-Level', 'Edexcel', NULL, 3, 3, 41),
+('Forces & Newton''s Laws', 'Mechanics', 'A-Level', 'Edexcel', NULL, 3, 3, 42),
+('Variable Acceleration (calculus)', 'Mechanics', 'A-Level', 'Edexcel', NULL, 4, 2, 43),
+('Moments', 'Mechanics', 'A-Level', 'Edexcel', NULL, 3, 2, 44),
+('Friction & Resolving Forces', 'Mechanics', 'A-Level', 'Edexcel', NULL, 4, 2, 45),
+('Projectiles', 'Mechanics', 'A-Level', 'Edexcel', NULL, 4, 2, 46);
+
+-- ============================================================
+-- A-LEVEL MATHS — AQA
+-- ============================================================
+INSERT INTO topics (name, category, qualification, exam_board, tier, difficulty, estimated_sessions, order_index) VALUES
+('Algebra & Functions (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 2, 3, 1),
+('Quadratics (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 2, 2, 2),
+('Equations & Inequalities (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 2, 2, 3),
+('Graphs & Transformations (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 4),
+('Straight Line Graphs (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 2, 1, 5),
+('Circles (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 6),
+('Algebraic Methods (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 7),
+('Binomial Expansion (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 8),
+('Trigonometry (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 3, 9),
+('Vectors (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 10),
+('Differentiation (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 3, 11),
+('Integration (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 3, 12),
+('Exponentials & Logarithms (Year 1)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 13),
+('Algebraic & Partial Fractions (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 2, 14),
+('Functions & Modulus (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 2, 15),
+('Sequences & Series (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 16),
+('Binomial Expansion (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 2, 17),
+('Radians & Trig Identities (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 3, 18),
+('Further Differentiation (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 3, 19),
+('Further Integration (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 5, 4, 20),
+('Differential Equations (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 5, 3, 21),
+('Numerical Methods (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 2, 22),
+('Vectors (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 2, 23),
+('Parametric Equations (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 4, 2, 24),
+('Proof by Contradiction (Year 2)', 'Pure Maths', 'A-Level', 'AQA', NULL, 3, 1, 25),
+('Statistical Sampling', 'Statistics', 'A-Level', 'AQA', NULL, 2, 1, 30),
+('Data Presentation & Interpretation', 'Statistics', 'A-Level', 'AQA', NULL, 2, 2, 31),
+('Probability', 'Statistics', 'A-Level', 'AQA', NULL, 3, 2, 32),
+('Statistical Distributions (Binomial)', 'Statistics', 'A-Level', 'AQA', NULL, 3, 2, 33),
+('Statistical Hypothesis Testing', 'Statistics', 'A-Level', 'AQA', NULL, 4, 3, 34),
+('Normal Distribution', 'Statistics', 'A-Level', 'AQA', NULL, 4, 3, 35),
+('Conditional Probability & Correlation', 'Statistics', 'A-Level', 'AQA', NULL, 4, 2, 36),
+('Quantities & Units', 'Mechanics', 'A-Level', 'AQA', NULL, 1, 1, 40),
+('Kinematics (constant acceleration)', 'Mechanics', 'A-Level', 'AQA', NULL, 3, 3, 41),
+('Forces & Newton''s Laws', 'Mechanics', 'A-Level', 'AQA', NULL, 3, 3, 42),
+('Variable Acceleration (calculus)', 'Mechanics', 'A-Level', 'AQA', NULL, 4, 2, 43),
+('Moments', 'Mechanics', 'A-Level', 'AQA', NULL, 3, 2, 44),
+('Friction & Resolving Forces', 'Mechanics', 'A-Level', 'AQA', NULL, 4, 2, 45),
+('Projectiles', 'Mechanics', 'A-Level', 'AQA', NULL, 4, 2, 46);
+
+-- ============================================================
+-- A-LEVEL MATHS — OCR
+-- ============================================================
+INSERT INTO topics (name, category, qualification, exam_board, tier, difficulty, estimated_sessions, order_index) VALUES
+('Algebra & Functions (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 2, 3, 1),
+('Quadratics (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 2, 2, 2),
+('Equations & Inequalities (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 2, 2, 3),
+('Graphs & Transformations (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 4),
+('Straight Line Graphs (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 2, 1, 5),
+('Circles (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 6),
+('Algebraic Methods (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 7),
+('Binomial Expansion (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 8),
+('Trigonometry (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 3, 9),
+('Vectors (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 10),
+('Differentiation (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 3, 11),
+('Integration (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 3, 12),
+('Exponentials & Logarithms (Year 1)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 13),
+('Algebraic & Partial Fractions (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 2, 14),
+('Functions & Modulus (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 2, 15),
+('Sequences & Series (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 16),
+('Binomial Expansion (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 2, 17),
+('Radians & Trig Identities (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 3, 18),
+('Further Differentiation (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 3, 19),
+('Further Integration (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 5, 4, 20),
+('Differential Equations (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 5, 3, 21),
+('Numerical Methods (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 2, 22),
+('Vectors (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 2, 23),
+('Parametric Equations (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 4, 2, 24),
+('Proof by Contradiction (Year 2)', 'Pure Maths', 'A-Level', 'OCR', NULL, 3, 1, 25),
+('Statistical Sampling', 'Statistics', 'A-Level', 'OCR', NULL, 2, 1, 30),
+('Data Presentation & Interpretation', 'Statistics', 'A-Level', 'OCR', NULL, 2, 2, 31),
+('Probability', 'Statistics', 'A-Level', 'OCR', NULL, 3, 2, 32),
+('Statistical Distributions (Binomial)', 'Statistics', 'A-Level', 'OCR', NULL, 3, 2, 33),
+('Statistical Hypothesis Testing', 'Statistics', 'A-Level', 'OCR', NULL, 4, 3, 34),
+('Normal Distribution', 'Statistics', 'A-Level', 'OCR', NULL, 4, 3, 35),
+('Conditional Probability & Correlation', 'Statistics', 'A-Level', 'OCR', NULL, 4, 2, 36),
+('Quantities & Units', 'Mechanics', 'A-Level', 'OCR', NULL, 1, 1, 40),
+('Kinematics (constant acceleration)', 'Mechanics', 'A-Level', 'OCR', NULL, 3, 3, 41),
+('Forces & Newton''s Laws', 'Mechanics', 'A-Level', 'OCR', NULL, 3, 3, 42),
+('Variable Acceleration (calculus)', 'Mechanics', 'A-Level', 'OCR', NULL, 4, 2, 43),
+('Moments', 'Mechanics', 'A-Level', 'OCR', NULL, 3, 2, 44),
+('Friction & Resolving Forces', 'Mechanics', 'A-Level', 'OCR', NULL, 4, 2, 45),
+('Projectiles', 'Mechanics', 'A-Level', 'OCR', NULL, 4, 2, 46);
