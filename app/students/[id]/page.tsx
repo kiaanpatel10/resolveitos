@@ -90,6 +90,14 @@ export default async function StudentProfilePage({
     : { data: [] };
   const tutors = (tutorsRaw ?? []) as unknown as { id: string; full_name: string }[];
 
+  // Fetch assessments for this student
+  const { data: assessmentsRaw } = await supabase
+    .from("assessments")
+    .select("*")
+    .eq("student_id", params.id)
+    .order("date_taken", { ascending: true });
+  const assessments = (assessmentsRaw ?? []) as unknown as AnyRow[];
+
   return (
     <div className="min-h-screen bg-[#0F172A]">
       <NavBar />
@@ -113,6 +121,8 @@ export default async function StudentProfilePage({
           sessions={sessions as any}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           allTopics={allTopics as any}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          assessments={assessments as any}
           tutors={tutors}
           isAdmin={isAdmin}
         />

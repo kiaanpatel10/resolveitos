@@ -56,6 +56,18 @@ type SessionRow = {
 
 type TopicMapRow = { id: string; name: string; category: string };
 
+type AssessmentRow = {
+  id: string;
+  type: string;
+  title: string;
+  date_taken: string;
+  score: number | null;
+  max_score: number | null;
+  grade: string | null;
+  topics_tested: string[] | null;
+  notes: string | null;
+};
+
 const STATUS_CHIP: Record<string, string> = {
   not_started: "bg-[#475569]/20 text-[#475569] border-[#475569]/30",
   in_progress: "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/30",
@@ -83,7 +95,7 @@ const STATUS_COLOUR: Record<string, string> = {
   churned: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
-type Tab = "progress" | "sessions" | "details";
+type Tab = "progress" | "sessions" | "assessments" | "details";
 
 export default function StudentProfile({
   student,
@@ -91,6 +103,7 @@ export default function StudentProfile({
   progress,
   sessions,
   allTopics,
+  assessments,
   tutors,
   isAdmin,
 }: {
@@ -99,6 +112,7 @@ export default function StudentProfile({
   progress: ProgressRow[];
   sessions: SessionRow[];
   allTopics: TopicMapRow[];
+  assessments: AssessmentRow[];
   tutors: { id: string; full_name: string }[];
   isAdmin: boolean;
 }) {
@@ -174,7 +188,7 @@ export default function StudentProfile({
 
       {/* Tabs */}
       <div className="flex gap-1 bg-[#1E293B] border border-[#334155] rounded-xl p-1">
-        {(["progress", "sessions", "details"] as Tab[]).map((tab) => (
+        {(["progress", "sessions", "assessments", "details"] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -184,9 +198,12 @@ export default function StudentProfile({
                 : "text-[#94A3B8] hover:text-[#F8FAFC]"
             }`}
           >
-            {tab === "sessions" ? "Sessions" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
             {tab === "sessions" && sessions.length > 0 && (
               <span className="ml-1.5 text-xs text-[#475569]">({sessions.length})</span>
+            )}
+            {tab === "assessments" && assessments.length > 0 && (
+              <span className="ml-1.5 text-xs text-[#475569]">({assessments.length})</span>
             )}
           </button>
         ))}
@@ -204,6 +221,14 @@ export default function StudentProfile({
       )}
       {activeTab === "sessions" && (
         <SessionsTab sessions={sessions} topicNameMap={topicNameMap} />
+      )}
+      {activeTab === "assessments" && (
+        <AssessmentsTab
+          assessments={assessments}
+          studentId={student.id}
+          topicNameMap={topicNameMap}
+          isAdmin={isAdmin}
+        />
       )}
       {activeTab === "details" && (
         <DetailsTab
@@ -391,6 +416,383 @@ function SessionsTab({
         </div>
       ))}
     </div>
+  );
+}
+
+// ─── Assessments Tab ──────────────────────────────────────────────────────────
+
+function gradeToNumber(grade: string): number | null {
+  const n = parseFloat(grade);
+  if (!isNaN(n)) return n;
+  const map: Record<string, number> = { "A*": 8, A: 7, B: 6, C: 5, D: 4, E: 3, U: 1 };
+  return map[grade.toUpperCase()] ?? null;
+}
+
+function GradeChart({ assessments }: { assessments: AssessmentRow[] }) {
+  const points = assessments
+    .filter((a) => a.grade)
+    .map((a) => ({ label: a.title, date: a.date_taken, value: gradeToNumber(a.grade!) }))
+    .filter((p) => p.value !== null) as { label: string; date: string; value: number }[];
+
+  if (points.length < 2) return null;
+
+  const minVal = Math.min(...points.map((p) => p.value));
+  const maxVal = Math.max(...points.map((p) => p.value));
+  const range = maxVal - minVal || 1;
+
+  const W = 400;
+  const H = 120;
+  const PAD = 20;
+  const innerW = W - PAD * 2;
+  const innerH = H - PAD * 2;
+
+  const coords = points.map((p, i) => ({
+    x: PAD + (i / (points.length - 1)) * innerW,
+    y: PAD + innerH - ((p.value - minVal) / range) * innerH,
+    ...p,
+  }));
+
+  const pathD = coords
+    .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`)
+    .join(" ");
+
+  return (
+    <div className="bg-[#0F172A] rounded-xl p-4 overflow-x-auto">
+      <p className="text-[#475569] text-xs mb-3 uppercase tracking-wide">Grade Progression</p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full max-w-lg"
+        style={{ minWidth: 280 }}
+      >
+        {/* Grid lines */}
+        {[0, 0.5, 1].map((frac) => {
+          const y = PAD + innerH - frac * innerH;
+          return (
+            <line
+              key={frac}
+              x1={PAD}
+              y1={y}
+              x2={W - PAD}
+              y2={y}
+              stroke="#334155"
+              strokeWidth="1"
+              strokeDasharray="4,4"
+            />
+          );
+        })}
+        {/* Line */}
+        <path d={pathD} fill="none" stroke="#F97316" strokeWidth="2" strokeLinejoin="round" />
+        {/* Dots */}
+        {coords.map((c, i) => (
+          <g key={i}>
+            <circle cx={c.x} cy={c.y} r={4} fill="#F97316" />
+            <title>{`${c.label}: ${c.value}`}</title>
+          </g>
+        ))}
+      </svg>
+      <div className="flex justify-between mt-1">
+        {coords.map((c, i) => (
+          <span key={i} className="text-[#475569] text-xs text-center" style={{ flex: 1 }}>
+            {new Date(c.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const ASSESSMENT_TYPE_LABELS: Record<string, string> = {
+  diagnostic: "Diagnostic",
+  mock: "Mock Exam",
+  topic_test: "Topic Test",
+};
+
+const ASSESSMENT_TYPE_COLOURS: Record<string, string> = {
+  diagnostic: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  mock: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  topic_test: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+};
+
+function AssessmentsTab({
+  assessments,
+  studentId,
+  topicNameMap,
+  isAdmin,
+}: {
+  assessments: AssessmentRow[];
+  studentId: string;
+  topicNameMap: Record<string, string>;
+  isAdmin: boolean;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [localAssessments, setLocalAssessments] = useState(assessments);
+
+  // Sort reverse-chronological for display
+  const sorted = [...localAssessments].sort(
+    (a, b) => new Date(b.date_taken).getTime() - new Date(a.date_taken).getTime()
+  );
+  // Keep chronological order for chart
+  const chronological = [...localAssessments].sort(
+    (a, b) => new Date(a.date_taken).getTime() - new Date(b.date_taken).getTime()
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[#475569] text-sm">{sorted.length} assessment{sorted.length !== 1 ? "s" : ""}</p>
+        <button
+          onClick={() => setShowForm(true)}
+          className="px-3 py-1.5 rounded-lg bg-[#F97316] hover:bg-[#FB923C] text-white text-xs font-medium transition-colors"
+        >
+          + Log Assessment
+        </button>
+      </div>
+
+      {chronological.length >= 2 && <GradeChart assessments={chronological} />}
+
+      {sorted.length === 0 ? (
+        <div className="text-center py-16 text-[#475569]">No assessments logged yet</div>
+      ) : (
+        <div className="space-y-3">
+          {sorted.map((a) => {
+            const pct = a.score !== null && a.max_score ? Math.round((a.score / a.max_score) * 100) : null;
+            return (
+              <div key={a.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[#F8FAFC] font-medium text-sm">{a.title}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded border ${ASSESSMENT_TYPE_COLOURS[a.type] ?? ""}`}>
+                        {ASSESSMENT_TYPE_LABELS[a.type] ?? a.type}
+                      </span>
+                    </div>
+                    <p className="text-[#475569] text-xs mt-0.5">
+                      {new Date(a.date_taken).toLocaleDateString("en-GB", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    {a.score !== null && a.max_score && (
+                      <div className="text-right">
+                        <p className="text-[#F8FAFC] font-semibold text-sm">
+                          {a.score}/{a.max_score}
+                          <span className="text-[#475569] text-xs ml-1">({pct}%)</span>
+                        </p>
+                      </div>
+                    )}
+                    {a.grade && (
+                      <div className="text-center">
+                        <p className="text-[#F97316] font-bold text-xl">{a.grade}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {a.topics_tested && a.topics_tested.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {a.topics_tested.map((tid) => (
+                      <span key={tid} className="text-xs px-1.5 py-0.5 rounded bg-[#334155] text-[#94A3B8]">
+                        {topicNameMap[tid] ?? tid}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {a.notes && (
+                  <p className="text-[#94A3B8] text-sm border-t border-[#334155] pt-2">{a.notes}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showForm && (
+        <LogAssessmentModal
+          studentId={studentId}
+          onClose={() => setShowForm(false)}
+          onSuccess={(newAssessment) => {
+            setLocalAssessments((prev) => [...prev, newAssessment]);
+            setShowForm(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function LogAssessmentModal({
+  studentId,
+  onClose,
+  onSuccess,
+}: {
+  studentId: string;
+  onClose: () => void;
+  onSuccess: (a: AssessmentRow) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    type: "mock" as const,
+    title: "",
+    date_taken: new Date().toISOString().split("T")[0],
+    score: "",
+    max_score: "",
+    grade: "",
+    notes: "",
+  });
+
+  function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+    return (
+      <div>
+        <label className="block text-xs font-medium text-[#94A3B8] mb-1.5">
+          {label}
+          {required && <span className="text-[#F97316] ml-0.5">*</span>}
+        </label>
+        {children}
+      </div>
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/assessments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: studentId,
+          type: form.type,
+          title: form.title,
+          date_taken: form.date_taken,
+          score: form.score ? parseFloat(form.score) : null,
+          max_score: form.max_score ? parseFloat(form.max_score) : null,
+          grade: form.grade || null,
+          notes: form.notes || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to log assessment");
+        return;
+      }
+      toast.success("Assessment logged");
+      onSuccess(data.assessment);
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-md shadow-2xl">
+          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#334155]">
+            <h2 className="text-[#F8FAFC] font-semibold">Log Assessment</h2>
+            <button onClick={onClose} className="text-[#475569] hover:text-[#94A3B8] text-lg leading-none">×</button>
+          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Type" required>
+                <select
+                  value={form.type}
+                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as typeof form.type }))}
+                  className="input-base"
+                >
+                  <option value="mock">Mock Exam</option>
+                  <option value="diagnostic">Diagnostic</option>
+                  <option value="topic_test">Topic Test</option>
+                </select>
+              </Field>
+              <Field label="Date" required>
+                <input
+                  type="date"
+                  value={form.date_taken}
+                  onChange={(e) => setForm((f) => ({ ...f, date_taken: e.target.value }))}
+                  className="input-base"
+                  required
+                />
+              </Field>
+            </div>
+
+            <Field label="Title" required>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="e.g. Nov Mock Paper 1"
+                className="input-base"
+                required
+              />
+            </Field>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Score">
+                <input
+                  type="number"
+                  value={form.score}
+                  onChange={(e) => setForm((f) => ({ ...f, score: e.target.value }))}
+                  placeholder="e.g. 72"
+                  className="input-base"
+                  min={0}
+                />
+              </Field>
+              <Field label="Out of">
+                <input
+                  type="number"
+                  value={form.max_score}
+                  onChange={(e) => setForm((f) => ({ ...f, max_score: e.target.value }))}
+                  placeholder="e.g. 100"
+                  className="input-base"
+                  min={1}
+                />
+              </Field>
+              <Field label="Grade">
+                <input
+                  type="text"
+                  value={form.grade}
+                  onChange={(e) => setForm((f) => ({ ...f, grade: e.target.value }))}
+                  placeholder="e.g. 6 or B"
+                  className="input-base"
+                />
+              </Field>
+            </div>
+
+            <Field label="Notes">
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={2}
+                placeholder="Key observations, areas to focus on..."
+                className="input-base resize-none"
+              />
+            </Field>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-lg bg-[#F97316] hover:bg-[#FB923C] disabled:opacity-50 text-white text-sm font-medium transition-colors"
+              >
+                {saving ? "Saving..." : "Log Assessment"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-lg border border-[#334155] text-[#94A3B8] hover:text-[#F8FAFC] text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
   );
 }
 

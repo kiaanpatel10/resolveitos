@@ -102,6 +102,7 @@ export default async function DashboardPage() {
     { data: topicsRaw },
     { data: tutorsRaw },
     { data: allTopicsMapRaw },
+    { data: recentAssessmentsRaw },
   ] = await Promise.all([
     supabase
       .from("students")
@@ -141,7 +142,22 @@ export default async function DashboardPage() {
     supabase
       .from("topics")
       .select("id, name"),
+    supabase
+      .from("assessments")
+      .select("id, title, type, grade, date_taken, student:students(id, full_name)")
+      .order("date_taken", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
+
+  type AssessmentDashRow = {
+    id: string;
+    title: string;
+    type: string;
+    grade: string | null;
+    date_taken: string;
+    student: { id: string; full_name: string } | null;
+  };
 
   const students = (studentsRaw ?? []) as unknown as StudentRow[];
   const allSessions = (allSessionsRaw ?? []) as unknown as SessionRow[];
@@ -151,6 +167,7 @@ export default async function DashboardPage() {
   const topicNameMap = Object.fromEntries(
     ((allTopicsMapRaw ?? []) as unknown as { id: string; name: string }[]).map((t) => [t.id, t.name])
   );
+  const recentAssessments = (recentAssessmentsRaw ?? []) as unknown as AssessmentDashRow[];
 
   // ── Build lookups ────────────────────────────────────────────────────────
 
@@ -452,13 +469,49 @@ export default async function DashboardPage() {
               )}
             </Section>
 
+            {/* Recent Assessments */}
+            <Section title="Recent Assessments" count={recentAssessments.length}>
+              {recentAssessments.length === 0 ? (
+                <EmptyState icon="📊" text="No assessments logged yet" />
+              ) : (
+                <div className="divide-y divide-[#334155]">
+                  {recentAssessments.map((a) => (
+                    <Link
+                      key={a.id}
+                      href={a.student ? `/students/${a.student.id}` : "#"}
+                      className="flex items-center justify-between px-4 py-3 hover:bg-[#334155]/30 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-[#F8FAFC] text-sm font-medium truncate">
+                          {a.student?.full_name ?? "Unknown"}
+                        </p>
+                        <p className="text-[#475569] text-xs mt-0.5 truncate">{a.title}</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+                        {a.grade && (
+                          <span className="text-[#F97316] font-bold text-sm">{a.grade}</span>
+                        )}
+                        <span className="text-[#475569] text-xs">
+                          {new Date(a.date_taken).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </Section>
+
             {/* Quick links */}
             <Section title="Quick Actions">
               <div className="p-4 space-y-2">
                 {[
                   { href: "/students", label: "View All Students", icon: "👥" },
+                  { href: "/tutors", label: "Manage Tutors", icon: "🎓" },
+                  { href: "/resources", label: "Resource Library", icon: "📚" },
                   { href: "/log-session", label: "Log a Session", icon: "📝" },
-                  { href: "/students", label: "Add New Student", icon: "➕" },
                 ].map((link) => (
                   <Link
                     key={link.label}

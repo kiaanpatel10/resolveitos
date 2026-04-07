@@ -67,7 +67,23 @@ All tables created and live:
 - On submit: `POST /api/sessions` → DB trigger fires → student progress auto-updated → success toast → form resets
 
 #### `/tutor`
-- Placeholder page only — tutors land here after login
+- Welcome message with first name, date
+- Stats row: My Students, Sessions This Week, Sessions This Month
+- Active student cards (2-col grid) with progress bars, links to profiles
+- Paused/inactive students section
+- Recent 10 sessions panel with engagement colour, topic chips
+- Log Session CTA
+
+#### `/tutors` (admin only)
+- Sortable table (desktop) / mobile cards listing all tutors
+- Columns: name, email, student count, sessions this week, last active
+- Add Tutor modal: creates Supabase auth user + inserts profile row
+- `/tutors/[id]` detail page: header stats, assigned students with unassign, recent sessions, assign modal
+
+#### `/resources`
+- Search bar + 5 filters (qualification, exam board, type, difficulty)
+- Resource grid cards with type badge, difficulty stars, download link
+- Admin upload modal: file to Supabase Storage + metadata (type, difficulty, topic link, exam board)
 
 ---
 
@@ -88,42 +104,53 @@ All tables created and live:
 
 ### MVP Gaps (should finish before onboarding tutors)
 
-#### `/tutor` — Tutor home page
-The current page is a placeholder. Tutors need a useful landing page showing:
-- Their assigned students with progress
-- Quick link to log a session
-- Their own recent session history
+#### ~~`/tutor` — Tutor home page~~ ✅ BUILT
+- Welcome message with first name
+- Stats: total students, sessions this week, sessions this month
+- Active student cards with progress bar (2-col grid, links to /students/[id])
+- Paused/inactive students section (collapsed below)
+- Recent 10 sessions with engagement colour, topic chips
+- Log Session CTA button
 
-#### `/tutors` — Tutor management (admin only)
-Per the spec:
-- List of all tutors with assigned student count, session count, last active
-- Ability to add new tutors (currently you have to create users in Supabase manually)
-- Click through to see a tutor's students and session history
+#### ~~`/tutors` — Tutor management (admin only)~~ ✅ BUILT
+- Table (desktop) / cards (mobile) listing tutors with: name, email, student count, sessions this week, last active
+- "Add Tutor" modal — creates Supabase auth user + profile row via service role key
+- `/tutors/[id]` detail page: tutor header with stats, assigned students list, recent sessions
+- Assign/unassign students inline on the detail page
+- Admin-only — redirects tutors to /tutor
 
 #### Missing API routes
-| Method | Route | Purpose |
-|--------|-------|---------|
-| `GET` | `/api/tutors` | List tutors (admin only) |
-| `GET` | `/api/topics` | List topics with filters |
-| `GET` | `/api/dashboard/stats` | Expose dashboard data as API |
+| Method | Route | Purpose | Status |
+|--------|-------|---------|--------|
+| `GET` | `/api/tutors` | List tutors (admin only) | ✅ Built |
+| `POST` | `/api/tutors` | Create tutor account | ✅ Built |
+| `GET` | `/api/tutors/[id]` | Tutor profile with students/sessions | ✅ Built |
+| `PATCH` | `/api/tutors/[id]` | Assign/unassign students | ✅ Built |
+| `GET` | `/api/resources` | List resources with filters | ✅ Built |
+| `POST` | `/api/resources` | Upload resource to Supabase Storage | ✅ Built |
+| `POST` | `/api/assessments` | Log assessment | ✅ Built |
+| `GET` | `/api/assessments/[studentId]` | Get assessments for student | ✅ Built |
+| `GET` | `/api/topics` | List topics with filters | Not yet |
+| `GET` | `/api/dashboard/stats` | Expose dashboard data as API | Not yet |
 
 ---
 
 ### Phase 2 (post-MVP, per spec)
 
-#### Resource Library (`/resources`)
-- Grid/list of worksheets, past papers, mark schemes, notes, videos
-- Filter by topic, qualification, exam board, difficulty, type
-- Admin uploads (file + metadata → Supabase Storage)
-- Tutors browse and download
-- Each resource linked to a curriculum topic
-- Requires: Supabase Storage bucket setup
+#### ~~Resource Library (`/resources`)~~ ✅ BUILT
+- Grid view with search + filter (qualification, exam board, type, difficulty)
+- Resource cards: title, linked topic, type badge, difficulty stars, exam board, download link
+- Admin upload modal: file upload to Supabase Storage bucket ("resources") + metadata form
+- Tutors can browse and download, not upload
+- Each resource linkable to a curriculum topic
+- **Requires:** Supabase Storage bucket named "resources" to be created and set to public
 
-#### Assessment Tracking
-- Log mock exams, diagnostics, topic tests against students
-- Score + grade tracking over time
-- Grade progression chart on student profile (Assessments tab — currently placeholder)
-- `POST /api/assessments` and `GET /api/assessments/[studentId]` routes needed
+#### ~~Assessment Tracking~~ ✅ BUILT
+- "Assessments" tab added to student profiles (4th tab)
+- Log Assessment modal: type (mock/diagnostic/topic_test), title, date, score, max_score, grade, notes
+- Assessment history (reverse-chronological) with score %, grade, type badge
+- Grade progression SVG line chart (appears when ≥2 graded assessments exist)
+- Admin dashboard "Recent Assessments" widget shows last 5 across all students
 
 #### Curriculum Map (`/curriculum`) — admin reference
 - Browse all topics by qualification → exam board → category
@@ -152,5 +179,6 @@ Per the spec:
 
 ## Known Issues / Tech Debt
 - The new Supabase publishable/secret key format causes TypeScript inference to return `never` for query results — worked around with `as any` casts in server components. Will resolve cleanly if Supabase updates their TypeScript types for the new key format.
-- `/tutor` is a placeholder — tutors currently have no useful UI after login.
-- No "Add Tutor" UI — tutors must be created manually in Supabase Auth dashboard, then their `profiles.role` must be set via SQL.
+- `/resources` upload requires a Supabase Storage bucket named **"resources"** with public access enabled. Must be created manually in Supabase dashboard before uploads work.
+- `/tutors/[id]` is a client component (uses `useEffect` + fetch) rather than a server component — avoids auth middleware complexity on dynamic client pages.
+- Grade progression chart only appears when the student has ≥2 assessments with a grade set.
