@@ -6,12 +6,15 @@ import { usePathname } from "next/navigation";
 const ADMIN_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/students", label: "Students" },
+  { href: "/tutors", label: "Tutors" },
+  { href: "/resources", label: "Resources" },
   { href: "/log-session", label: "Log Session" },
 ];
 
 const TUTOR_LINKS = [
   { href: "/tutor", label: "Home" },
   { href: "/students", label: "My Students" },
+  { href: "/resources", label: "Resources" },
   { href: "/log-session", label: "Log Session" },
 ];
 
