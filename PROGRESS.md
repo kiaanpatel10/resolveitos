@@ -13,14 +13,18 @@ All tables created and live:
 | Table | Purpose |
 |-------|---------|
 | `profiles` | Extends Supabase auth — stores role (admin/tutor), name, phone |
-| `students` | Student records with curriculum info, grades, parent contact |
+| `students` | Student records with curriculum info, grades, parent contact, payment status |
 | `topics` | Curriculum backbone — ~170 topics seeded across GCSE + A-Level |
-| `session_logs` | Every tutoring session logged by tutors |
+| `session_logs` | Every tutoring session logged by tutors; supports group sessions via `student_ids UUID[]` |
 | `student_topic_progress` | Auto-updated by DB trigger when a session is logged |
-| `resources` | Worksheet/resource library (table exists, UI not built yet) |
-| `assessments` | Mock exams and test scores (table exists, UI not built yet) |
+| `resources` | Worksheet/resource library with Supabase Storage |
+| `assessments` | Mock exams and test scores |
+| `invoices` | Per-student invoices with status tracking |
+| `schedule` | Weekly recurring schedule entries per tutor/student |
+| `training_modules` | SOP/video/document modules for tutor onboarding |
+| `tutor_training_progress` | Per-tutor completion status for each training module |
 
-**DB trigger:** `update_student_topic_progress` — fires on every `INSERT` into `session_logs`, automatically upserts `student_topic_progress` for each topic covered, increments `times_covered`, updates `latest_comprehension` and `last_covered_date`.
+**DB trigger:** `update_student_topic_progress` — fires on every `INSERT` into `session_logs`, loops over `student_ids` array (falls back to `student_id`), upserts progress for each topic covered, increments `times_covered`, updates `latest_comprehension` and `last_covered_date`.
 
 **Curriculum seeded:** GCSE (Foundation + Higher) for Edexcel and AQA. A-Level (Pure, Statistics, Mechanics) for Edexcel, AQA, and OCR.
 
@@ -28,7 +32,9 @@ All tables created and live:
 
 ---
 
-### Pages Built
+## Pages & Features Built
+
+### Phase 1: Core MVP
 
 #### `/login`
 - Email + password auth via Supabase
@@ -45,26 +51,25 @@ All tables created and live:
 
 #### `/students` (admin sees all, tutors see assigned only)
 - Table with search + filter by status, year group, tutor
-- Shows: name, year, curriculum, current → target grade, tutor, progress bar %, status badge
+- Shows: name, year, curriculum, current → target grade, tutor, progress bar %, status badge, payment badge
 - Mobile card layout
-- **Add Student modal** (admin only): full form with name, year, qualification, exam board, tier (GCSE only), grades, tutor assignment, parent contact, notes. Saves via `POST /api/students`, refreshes list on success
+- **Add Student modal** (admin only): full form with name, year, qualification, exam board, tier (GCSE only), grades, tutor assignment, parent contact, notes
 
 #### `/students/[id]`
 - **Header card:** Name, status, qualification, exam board, tier, tutor, current → target grade, progress bar
-- **Progress tab:** Topic chips grouped by category, colour-coded (grey = not started, green = covered, gold = mastered). Hover tooltip shows times covered + comprehension. Per-category counts
-- **Sessions tab:** Reverse-chronological session cards — date, type, duration, tutor, topics covered (resolved from UUIDs), engagement + comprehension ratings, notes, homework
-- **Details tab:** Student info display + parent contact. Admin can edit: current/target grade, status, tutor assignment, parent info, notes. Saves via `PUT /api/students/[id]`
+- **Progress tab:** Topic chips grouped by category, colour-coded (grey = not started, green = covered, gold = mastered). Hover tooltip shows times covered + comprehension
+- **Sessions tab:** Reverse-chronological session cards with all session details
+- **Details tab:** Student info + parent contact, admin-editable including payment status and monthly rate
+- **Assessments tab:** Log Assessment modal, assessment history, grade progression SVG chart
 
 #### `/log-session`
-- Student picker (tutors see only their students, admins see all)
-- Date picker (defaults to today)
-- Session type selector (Regular / Mock Review / Diagnostic / Revision)
-- Duration slider (30–120 mins in 15-min steps)
-- Searchable topic multi-select filtered to student's exam board + qualification, grouped by category, selected topics shown as removable chips
-- One-tap engagement buttons (Excellent / Good / Average / Poor)
-- One-tap comprehension buttons (Mastered / Confident / Developing / Struggling)
-- Session notes + homework free-text fields
-- On submit: `POST /api/sessions` → DB trigger fires → student progress auto-updated → success toast → form resets
+- Multi-select student picker (group session support) — tutors see only their students
+- Curriculum validation when adding 2nd+ student (must match primary student's exam board)
+- Date picker, session type, duration slider (30–120 mins)
+- Searchable topic multi-select filtered by student's curriculum, grouped by category
+- One-tap engagement + comprehension buttons
+- Session notes + homework fields
+- Sends `student_id` (primary) and `student_ids` (all) to API
 
 #### `/tutor`
 - Welcome message with first name, date
@@ -80,32 +85,30 @@ All tables created and live:
 - Add Tutor modal: creates Supabase auth user + inserts profile row
 - `/tutors/[id]` detail page: header stats, assigned students with unassign, recent sessions, assign modal
 
-#### `/resources`
-- Search bar + 5 filters (qualification, exam board, type, difficulty)
-- Resource grid cards with type badge, difficulty stars, download link
-- Admin upload modal: file to Supabase Storage + metadata (type, difficulty, topic link, exam board)
-
 ---
 
-### API Routes Built
-| Method | Route | Notes |
-|--------|-------|-------|
-| `POST` | `/api/auth/logout` | Signs out and redirects to `/login` |
-| `GET` | `/api/students` | Role-filtered student list |
-| `POST` | `/api/students` | Admin only — creates student |
-| `GET` | `/api/students/[id]` | Single student |
-| `PUT` | `/api/students/[id]` | Update student details |
-| `GET` | `/api/sessions` | Sessions (role-filtered, filterable by student) |
-| `POST` | `/api/sessions` | Log a session — trigger handles progress update |
+### Phase 2: Resource Library & Assessments
 
----
+#### `/resources` ✅ BUILT
+- Grid view with search + 5 filters (qualification, exam board, type, difficulty)
+- Resource cards: title, linked topic, type badge, difficulty stars, exam board, download link
+- Admin upload modal: file upload to Supabase Storage bucket ("resources") + metadata form
+- Tutors can browse and download, not upload
+- **Requires:** Supabase Storage bucket named "resources" with public access enabled
+
+#### Assessment Tracking ✅ BUILT
+- "Assessments" tab on every student profile (4th tab)
+- Log Assessment modal: type (mock/diagnostic/topic_test), title, date, score, max_score, grade, notes
+- Assessment history (reverse-chronological) with score %, grade, type badge
+- Grade progression SVG line chart (appears when ≥2 graded assessments exist)
+- Admin dashboard "Recent Assessments" widget shows last 5 across all students
 
 ---
 
 ### Phase 3: Payments & Revenue
 
 #### Payment Status on Students ✅ BUILT
-- `payment_status` ('paid'/'overdue'/'trial'/'free') and `monthly_rate` fields added to students table
+- `payment_status` ('paid'/'overdue'/'trial'/'free') and `monthly_rate` fields on students table
 - Payment badge shown next to student name on `/students` list (green/red/amber, hidden when free)
 - Payment status and monthly rate editable in student profile Details tab
 
@@ -125,13 +128,8 @@ All tables created and live:
 
 #### Stripe Prep ✅ BUILT
 - `stripe_customer_id` column on students table (migration 005)
-- `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` env vars added to `.env.local`
+- `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` env vars in `.env.local`
 - Placeholder webhook handler at `POST /api/stripe/webhook`
-
-#### Nav Updates ✅ BUILT
-- Invoices and Revenue links added to admin nav
-
----
 
 ---
 
@@ -147,32 +145,30 @@ All tables created and live:
 - API: `GET/POST /api/schedule`, `PATCH/DELETE /api/schedule/[id]`
 
 #### Google Calendar Integration ✅ BUILT (placeholder)
-- ICS file generation for all schedule types
-- Placeholder OAuth endpoint at `POST /api/calendar/sync` (returns 501)
+- ICS file generation for all schedule types (importable into any calendar app)
+- Placeholder OAuth endpoint at `POST /api/calendar/sync` (returns 501, ready to wire up)
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` env vars added
 
 #### Tutor Training Hub (`/training`) ✅ BUILT
 - `training_modules` table: title, type (sop/video/document), content (markdown), order_index
 - `tutor_training_progress` table: tutor_id, module_id, status, completed_at
-- **`/training`** page: module grid cards with type badge, status chip, progress bar
+- **`/training`** page: module grid cards with type badge, status chip, overall progress bar
 - Module detail modal: SOP renders markdown via minimal regex renderer, video shows iframe, document shows download link
 - Tutors can mark in_progress/completed; admins can create/edit/delete modules
 - 4 seeded modules: Session Delivery SOP, How to Log a Session, Communication Standards, Exam Board Overview
 - API: `GET/POST /api/training`, `PATCH/DELETE /api/training/[id]`, `GET/POST /api/training/progress`
 
 #### Group Session Support ✅ BUILT
-- `student_ids UUID[]` column added to `session_logs` (migration 008)
-- Existing rows backfilled: `student_ids = ARRAY[student_id]`
-- DB trigger updated to loop over `student_ids` array (falls back to `student_id`)
-- `SessionLogForm` rewritten: multi-select student picker with search, curriculum validation when adding 2nd+ student
+- `student_ids UUID[]` column added to `session_logs` (migration 008), existing rows backfilled
+- DB trigger updated to loop over `student_ids` array (falls back to `student_id` for backward compat)
+- `SessionLogForm` rewritten: multi-select student picker with search, curriculum validation
 - Submit sends both `student_id` (primary) and `student_ids` to API
-- API route updated to persist `student_ids`
 
 #### Analytics Dashboard (`/analytics`) ✅ BUILT (admin only)
-- Pure SVG charts (no chart library): bar chart + line chart components
-- **Session volume**: weekly line chart (last 90 days)
+- Pure SVG charts (no chart library): reusable `BarChart` + `LineChart` components
+- **Session volume**: weekly sessions line chart (last 90 days)
 - **Topic frequency**: top-15 topics by session count (bar chart)
-- **Topic difficulty**: avg comprehension by topic, ascending sort (bar chart)
+- **Topic difficulty**: avg comprehension by topic, ascending sort — lower = harder (bar chart)
 - **Tutor effectiveness**: table with sessions, avg engagement, avg comprehension, colour-coded scores
 - **Engagement trend**: weekly avg engagement line chart
 - **Curriculum coverage**: per-curriculum progress bars (covered/mastered/total topics)
@@ -185,85 +181,77 @@ All tables created and live:
 
 ---
 
-## What's Left to Build
+## All API Routes
 
-### MVP Gaps (should finish before onboarding tutors)
-
-#### ~~`/tutor` — Tutor home page~~ ✅ BUILT
-- Welcome message with first name
-- Stats: total students, sessions this week, sessions this month
-- Active student cards with progress bar (2-col grid, links to /students/[id])
-- Paused/inactive students section (collapsed below)
-- Recent 10 sessions with engagement colour, topic chips
-- Log Session CTA button
-
-#### ~~`/tutors` — Tutor management (admin only)~~ ✅ BUILT
-- Table (desktop) / cards (mobile) listing tutors with: name, email, student count, sessions this week, last active
-- "Add Tutor" modal — creates Supabase auth user + profile row via service role key
-- `/tutors/[id]` detail page: tutor header with stats, assigned students list, recent sessions
-- Assign/unassign students inline on the detail page
-- Admin-only — redirects tutors to /tutor
-
-#### Missing API routes
-| Method | Route | Purpose | Status |
-|--------|-------|---------|--------|
-| `GET` | `/api/tutors` | List tutors (admin only) | ✅ Built |
-| `POST` | `/api/tutors` | Create tutor account | ✅ Built |
-| `GET` | `/api/tutors/[id]` | Tutor profile with students/sessions | ✅ Built |
-| `PATCH` | `/api/tutors/[id]` | Assign/unassign students | ✅ Built |
-| `GET` | `/api/resources` | List resources with filters | ✅ Built |
-| `POST` | `/api/resources` | Upload resource to Supabase Storage | ✅ Built |
-| `POST` | `/api/assessments` | Log assessment | ✅ Built |
-| `GET` | `/api/assessments/[studentId]` | Get assessments for student | ✅ Built |
-| `GET` | `/api/topics` | List topics with filters | Not yet |
-| `GET` | `/api/dashboard/stats` | Expose dashboard data as API | Not yet |
+| Method | Route | Notes |
+|--------|-------|-------|
+| `POST` | `/api/auth/logout` | Signs out and redirects to `/login` |
+| `GET` | `/api/students` | Role-filtered student list |
+| `POST` | `/api/students` | Admin only — creates student |
+| `GET` | `/api/students/[id]` | Single student with full data |
+| `PUT` | `/api/students/[id]` | Update student details |
+| `GET` | `/api/sessions` | Sessions (role-filtered, filterable by student) |
+| `POST` | `/api/sessions` | Log a session — trigger handles progress update; accepts `student_ids` |
+| `GET` | `/api/tutors` | List tutors (admin only) |
+| `POST` | `/api/tutors` | Create tutor account via service role key |
+| `GET` | `/api/tutors/[id]` | Tutor profile with students/sessions |
+| `PATCH` | `/api/tutors/[id]` | Assign/unassign students |
+| `GET` | `/api/resources` | List resources with filters |
+| `POST` | `/api/resources` | Upload resource to Supabase Storage |
+| `POST` | `/api/assessments` | Log assessment |
+| `GET` | `/api/assessments/[studentId]` | Get assessments for student |
+| `GET/POST` | `/api/invoices` | List/create invoices |
+| `PATCH` | `/api/invoices/[id]` | Mark paid / update invoice |
+| `GET/POST` | `/api/schedule` | List/create schedule entries |
+| `PATCH/DELETE` | `/api/schedule/[id]` | Update/delete schedule entry |
+| `POST` | `/api/calendar/sync` | Google Calendar OAuth (placeholder, returns 501) |
+| `GET/POST` | `/api/training` | List/create training modules |
+| `PATCH/DELETE` | `/api/training/[id]` | Update/delete training module |
+| `GET/POST` | `/api/training/progress` | Get/upsert tutor module progress |
+| `POST` | `/api/stripe/webhook` | Stripe webhook handler (placeholder) |
 
 ---
 
-### Phase 2 (post-MVP, per spec)
-
-#### ~~Resource Library (`/resources`)~~ ✅ BUILT
-- Grid view with search + filter (qualification, exam board, type, difficulty)
-- Resource cards: title, linked topic, type badge, difficulty stars, exam board, download link
-- Admin upload modal: file upload to Supabase Storage bucket ("resources") + metadata form
-- Tutors can browse and download, not upload
-- Each resource linkable to a curriculum topic
-- **Requires:** Supabase Storage bucket named "resources" to be created and set to public
-
-#### ~~Assessment Tracking~~ ✅ BUILT
-- "Assessments" tab added to student profiles (4th tab)
-- Log Assessment modal: type (mock/diagnostic/topic_test), title, date, score, max_score, grade, notes
-- Assessment history (reverse-chronological) with score %, grade, type badge
-- Grade progression SVG line chart (appears when ≥2 graded assessments exist)
-- Admin dashboard "Recent Assessments" widget shows last 5 across all students
-
-#### Curriculum Map (`/curriculum`) — admin reference
-- Browse all topics by qualification → exam board → category
-- See which topics have resources attached
-- Identify resource coverage gaps
-
-#### Parent Report Generator
-- Auto-generate a progress report PDF per student
-- Show topics covered, grades, session history summary
-- Send via email to parent
-
-#### Tutor Performance Scorecards
-- Sessions delivered per week/month
-- Engagement + comprehension averages across their students
-- Comparison against targets
-
-#### Scheduling System
-- Upcoming session calendar
-- Flag students with no session booked
-
-#### Automated Parent Comms
-- Weekly progress summary emails to parents
-- Triggered after sessions or on a schedule
+## DB Migrations Applied
+| File | Purpose |
+|------|---------|
+| `001_initial.sql` | Core tables: profiles, students, topics, session_logs, student_topic_progress |
+| `002_resources.sql` | Resources table + RLS |
+| `003_assessments.sql` | Assessments table + RLS |
+| `004_payments.sql` | payment_status, monthly_rate on students; invoices table |
+| `005_stripe.sql` | stripe_customer_id on students; Stripe env prep |
+| `006_schedule.sql` | schedule table + RLS |
+| `007_training.sql` | training_modules + tutor_training_progress tables; seeds 4 modules |
+| `008_group_sessions.sql` | student_ids UUID[] on session_logs; backfill; updated trigger |
 
 ---
 
 ## Known Issues / Tech Debt
-- The new Supabase publishable/secret key format causes TypeScript inference to return `never` for query results — worked around with `as any` casts in server components. Will resolve cleanly if Supabase updates their TypeScript types for the new key format.
-- `/resources` upload requires a Supabase Storage bucket named **"resources"** with public access enabled. Must be created manually in Supabase dashboard before uploads work.
-- `/tutors/[id]` is a client component (uses `useEffect` + fetch) rather than a server component — avoids auth middleware complexity on dynamic client pages.
-- Grade progression chart only appears when the student has ≥2 assessments with a grade set.
+
+### ⚠️ Active Build Error (as of 2026-04-08)
+- **`app/training/TrainingView.tsx` line 538** — `AddModuleModal` initialised `form.type` with `"sop" as const`, narrowing the type to a literal. TypeScript then flags `form.type === "video"` as an impossible comparison. Fixed in latest commit by widening to `"sop" as "sop" | "video" | "document"`. Vercel build for this fix is in progress.
+
+### Recurring Vercel Build Issues (now fixed)
+- `fmtDT` declared as a function inside a `for` loop in `ScheduleView.tsx` — not allowed in strict mode. Fixed: converted to `const` arrow function.
+- `[...new Set(...)]` spread in `ScheduleView.tsx` — requires `--downlevelIteration`. Fixed: `Array.from(new Set(...))`.
+- `_request: NextRequest` unused params in DELETE handlers — ESLint no-unused-vars fires even with underscore prefix in this project. Fixed: added `eslint-disable-next-line` comments.
+- `invoices` table block placed outside the `Tables` closing brace in `types.ts` — parsing error. Fixed: corrected brace placement.
+
+### Ongoing Tech Debt
+- The Supabase publishable/secret key format causes TypeScript inference to return `never` for query results — worked around with `as any` casts throughout. Will resolve if Supabase updates their TS types.
+- `/resources` upload requires a Supabase Storage bucket named **"resources"** with public access enabled — must be created manually in Supabase dashboard.
+- `/tutors/[id]` is a client component (uses `useEffect` + fetch) rather than a server component.
+- `npm run build` cannot be run in the Claude Code shell (Node/npm not available). All pre-push checks are static analysis only — errors only surface at Vercel build time.
+
+---
+
+## Still to Build
+
+| Feature | Notes |
+|---------|-------|
+| Curriculum Map (`/curriculum`) | Browse topics by qualification → exam board → category; see resource gaps |
+| Parent Report Generator | PDF progress report per student, email to parent |
+| Automated Parent Comms | Weekly summary emails triggered post-session or on schedule |
+| Google Calendar OAuth | Wire up `GOOGLE_CLIENT_ID/SECRET` to real OAuth flow in `/api/calendar/sync` |
+| `GET /api/topics` | List topics with filters (foundation for curriculum map) |
+| `GET /api/dashboard/stats` | Expose dashboard data as API endpoint |
