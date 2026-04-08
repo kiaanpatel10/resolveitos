@@ -227,7 +227,6 @@ export default function StudentProfile({
           assessments={assessments}
           studentId={student.id}
           topicNameMap={topicNameMap}
-          isAdmin={isAdmin}
         />
       )}
       {activeTab === "details" && (
@@ -517,12 +516,10 @@ function AssessmentsTab({
   assessments,
   studentId,
   topicNameMap,
-  isAdmin,
 }: {
   assessments: AssessmentRow[];
   studentId: string;
   topicNameMap: Record<string, string>;
-  isAdmin: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [localAssessments, setLocalAssessments] = useState(assessments);
