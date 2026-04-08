@@ -461,7 +461,7 @@ function AddModuleModal({
   const [form, setForm] = useState({
     title: "",
     description: "",
-    type: "sop" as const,
+    type: "sop" as "sop" | "video" | "document",
     content_url: "",
     content: "",
     required: false,
