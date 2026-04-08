@@ -144,7 +144,7 @@ export default function ScheduleView({
 
   // Build tutor colour map
   const tutorColourMap: Record<string, string> = {};
-  const uniqueTutorIds = [...new Set(schedule.map((e) => e.tutor_id))];
+  const uniqueTutorIds = Array.from(new Set(schedule.map((e) => e.tutor_id)));
   uniqueTutorIds.forEach((tid, i) => {
     tutorColourMap[tid] = TUTOR_COLOURS[i % TUTOR_COLOURS.length];
   });
