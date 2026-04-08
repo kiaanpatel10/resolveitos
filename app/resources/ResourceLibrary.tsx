@@ -18,7 +18,7 @@ type Resource = {
   topic: { name: string; category: string } | null;
 };
 
-type TopicRow = { id: string; name: string; category: string };
+type TopicRow = { id: string; name: string; category: string; qualification: string; exam_board: string };
 
 const FILE_TYPE_LABELS: Record<string, string> = {
   worksheet: "Worksheet",
