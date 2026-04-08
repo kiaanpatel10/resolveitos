@@ -351,7 +351,6 @@ export type Database = {
           created_at?: string;
         };
       };
-    };
       invoices: {
         Row: {
           id: string;
