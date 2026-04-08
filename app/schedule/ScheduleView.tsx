@@ -95,17 +95,14 @@ function generateICS(entries: ScheduleEntry[]): void {
     const startMs = new Date(date.getFullYear(), date.getMonth(), date.getDate(), sh, sm, 0);
     const endMs = new Date(startMs.getTime() + entry.duration_minutes * 60000);
 
-    function fmtDT(d: Date): string {
-      return (
-        String(d.getFullYear()) +
-        String(d.getMonth() + 1).padStart(2, "0") +
-        String(d.getDate()).padStart(2, "0") +
-        "T" +
-        String(d.getHours()).padStart(2, "0") +
-        String(d.getMinutes()).padStart(2, "0") +
-        "00"
-      );
-    }
+    const fmtDT = (d: Date): string =>
+      String(d.getFullYear()) +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      String(d.getDate()).padStart(2, "0") +
+      "T" +
+      String(d.getHours()).padStart(2, "0") +
+      String(d.getMinutes()).padStart(2, "0") +
+      "00";
 
     lines.push("BEGIN:VEVENT");
     lines.push(`DTSTART:${fmtDT(startMs)}`);
