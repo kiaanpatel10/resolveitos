@@ -133,6 +133,58 @@ All tables created and live:
 
 ---
 
+---
+
+### Phase 5: Scale Features
+
+#### Scheduling System (`/schedule`) ✅ BUILT
+- `schedule` table: tutor_id, student_id, day_of_week, start_time, duration_minutes, recurring, status, notes
+- RLS: admins full access, tutors see/create/update their own entries
+- **`/schedule`** page: desktop CSS grid (Mon–Sun × 08:00–19:30), mobile day-pill selector
+- Tutor colour coding (8 cycling colours), absolute-positioned session blocks
+- Add Session modal (admin selects tutor, student filtered by tutor), Edit/Cancel modal
+- **ICS export**: client-side Blob download with RRULE for recurring sessions
+- API: `GET/POST /api/schedule`, `PATCH/DELETE /api/schedule/[id]`
+
+#### Google Calendar Integration ✅ BUILT (placeholder)
+- ICS file generation for all schedule types
+- Placeholder OAuth endpoint at `POST /api/calendar/sync` (returns 501)
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` env vars added
+
+#### Tutor Training Hub (`/training`) ✅ BUILT
+- `training_modules` table: title, type (sop/video/document), content (markdown), order_index
+- `tutor_training_progress` table: tutor_id, module_id, status, completed_at
+- **`/training`** page: module grid cards with type badge, status chip, progress bar
+- Module detail modal: SOP renders markdown via minimal regex renderer, video shows iframe, document shows download link
+- Tutors can mark in_progress/completed; admins can create/edit/delete modules
+- 4 seeded modules: Session Delivery SOP, How to Log a Session, Communication Standards, Exam Board Overview
+- API: `GET/POST /api/training`, `PATCH/DELETE /api/training/[id]`, `GET/POST /api/training/progress`
+
+#### Group Session Support ✅ BUILT
+- `student_ids UUID[]` column added to `session_logs` (migration 008)
+- Existing rows backfilled: `student_ids = ARRAY[student_id]`
+- DB trigger updated to loop over `student_ids` array (falls back to `student_id`)
+- `SessionLogForm` rewritten: multi-select student picker with search, curriculum validation when adding 2nd+ student
+- Submit sends both `student_id` (primary) and `student_ids` to API
+- API route updated to persist `student_ids`
+
+#### Analytics Dashboard (`/analytics`) ✅ BUILT (admin only)
+- Pure SVG charts (no chart library): bar chart + line chart components
+- **Session volume**: weekly line chart (last 90 days)
+- **Topic frequency**: top-15 topics by session count (bar chart)
+- **Topic difficulty**: avg comprehension by topic, ascending sort (bar chart)
+- **Tutor effectiveness**: table with sessions, avg engagement, avg comprehension, colour-coded scores
+- **Engagement trend**: weekly avg engagement line chart
+- **Curriculum coverage**: per-curriculum progress bars (covered/mastered/total topics)
+- Tutor filter dropdown to slice all charts by individual tutor
+- Summary stats: sessions, hours delivered, avg engagement, unique students
+
+#### Nav Updates ✅ BUILT
+- Schedule + Training added to both admin and tutor nav
+- Analytics added to admin nav only
+
+---
+
 ## What's Left to Build
 
 ### MVP Gaps (should finish before onboarding tutors)

@@ -10,6 +10,9 @@ const ADMIN_LINKS = [
   { href: "/resources", label: "Resources" },
   { href: "/invoices", label: "Invoices" },
   { href: "/revenue", label: "Revenue" },
+  { href: "/schedule", label: "Schedule" },
+  { href: "/training", label: "Training" },
+  { href: "/analytics", label: "Analytics" },
   { href: "/log-session", label: "Log Session" },
 ];
 
@@ -17,6 +20,8 @@ const TUTOR_LINKS = [
   { href: "/tutor", label: "Home" },
   { href: "/students", label: "My Students" },
   { href: "/resources", label: "Resources" },
+  { href: "/schedule", label: "Schedule" },
+  { href: "/training", label: "Training" },
   { href: "/log-session", label: "Log Session" },
 ];
 

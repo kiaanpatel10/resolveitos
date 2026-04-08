@@ -37,7 +37,7 @@ export default function SessionLogForm({
 }) {
   const today = new Date().toISOString().split("T")[0];
 
-  const [studentId, setStudentId] = useState("");
+  const [studentIds, setStudentIds] = useState<string[]>([]);
   const [sessionDate, setSessionDate] = useState(today);
   const [sessionType, setSessionType] = useState<string>("regular");
   const [duration, setDuration] = useState(60);
@@ -49,22 +49,48 @@ export default function SessionLogForm({
   const [sessionNotes, setSessionNotes] = useState("");
   const [homeworkSet, setHomeworkSet] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [studentSearch, setStudentSearch] = useState("");
 
-  // Selected student object
-  const selectedStudent = students.find((s) => s.id === studentId);
+  // Primary student (first selected) drives topic filtering
+  const primaryStudent = students.find((s) => s.id === studentIds[0]);
 
-  // Filter topics to match selected student's exam board + qualification
+  const filteredStudents = useMemo(() => {
+    if (!studentSearch) return students;
+    const q = studentSearch.toLowerCase();
+    return students.filter((s) => s.full_name.toLowerCase().includes(q));
+  }, [students, studentSearch]);
+
+  function toggleStudent(id: string) {
+    setStudentIds((prev) => {
+      if (prev.includes(id)) {
+        const next = prev.filter((s) => s !== id);
+        if (next.length === 0) { setSelectedTopics([]); setTopicSearch(""); }
+        return next;
+      }
+      // When adding a second student, only allow same curriculum
+      if (prev.length > 0) {
+        const primary = students.find((s) => s.id === prev[0]);
+        const adding = students.find((s) => s.id === id);
+        if (primary && adding && (primary.qualification !== adding.qualification || primary.exam_board !== adding.exam_board)) {
+          toast.error("Group sessions require students with the same qualification and exam board");
+          return prev;
+        }
+      }
+      return [...prev, id];
+    });
+  }
+
+  // Filter topics to primary student's curriculum
   const filteredTopics = useMemo(() => {
-    if (!selectedStudent) return [];
+    if (!primaryStudent) return [];
     return topics.filter(
       (t) =>
-        t.qualification === selectedStudent.qualification &&
-        t.exam_board === selectedStudent.exam_board &&
-        (selectedStudent.tier === "N/A" || !selectedStudent.tier || !t.tier || t.tier === selectedStudent.tier)
+        t.qualification === primaryStudent.qualification &&
+        t.exam_board === primaryStudent.exam_board &&
+        (primaryStudent.tier === "N/A" || !primaryStudent.tier || !t.tier || t.tier === primaryStudent.tier)
     );
-  }, [selectedStudent, topics]);
+  }, [primaryStudent, topics]);
 
-  // Further filter by search query
   const searchedTopics = useMemo(() => {
     if (!topicSearch) return filteredTopics;
     const q = topicSearch.toLowerCase();
@@ -73,7 +99,6 @@ export default function SessionLogForm({
     );
   }, [filteredTopics, topicSearch]);
 
-  // Group topics by category
   const groupedTopics = useMemo(() => {
     return searchedTopics.reduce<Record<string, TopicRow[]>>((acc, topic) => {
       if (!acc[topic.category]) acc[topic.category] = [];
@@ -82,7 +107,6 @@ export default function SessionLogForm({
     }, {});
   }, [searchedTopics]);
 
-  // Names of selected topics for chips
   const selectedTopicNames = selectedTopics.map(
     (id) => topics.find((t) => t.id === id)?.name ?? id
   );
@@ -93,17 +117,10 @@ export default function SessionLogForm({
     );
   }
 
-  // Reset topics when student changes
-  function handleStudentChange(id: string) {
-    setStudentId(id);
-    setSelectedTopics([]);
-    setTopicSearch("");
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!studentId) return toast.error("Please select a student");
+    if (studentIds.length === 0) return toast.error("Please select at least one student");
     if (selectedTopics.length === 0) return toast.error("Select at least one topic");
     if (!engagement) return toast.error("Please rate student engagement");
     if (!comprehension) return toast.error("Please rate comprehension");
@@ -115,7 +132,8 @@ export default function SessionLogForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          student_id: studentId,
+          student_id: studentIds[0],
+          student_ids: studentIds,
           session_date: sessionDate,
           session_type: sessionType,
           duration_minutes: duration,
@@ -134,10 +152,16 @@ export default function SessionLogForm({
         return;
       }
 
-      toast.success("Session logged! Student progress updated.");
+      const studentCount = studentIds.length;
+      toast.success(
+        studentCount > 1
+          ? `Group session logged for ${studentCount} students!`
+          : "Session logged! Student progress updated."
+      );
 
       // Reset form
-      setStudentId("");
+      setStudentIds([]);
+      setStudentSearch("");
       setSessionDate(today);
       setSessionType("regular");
       setDuration(60);
@@ -156,22 +180,61 @@ export default function SessionLogForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Student */}
-      <Field label="Student" required>
-        <select
-          value={studentId}
-          onChange={(e) => handleStudentChange(e.target.value)}
-          className="input-base"
-          required
-        >
-          <option value="">Select a student...</option>
-          {students.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.full_name} — {s.qualification} {s.exam_board}
-              {s.tier && s.tier !== "N/A" ? ` (${s.tier})` : ""}
-            </option>
-          ))}
-        </select>
+      {/* Students (multi-select) */}
+      <Field label="Students" required>
+        {/* Selected chips */}
+        {studentIds.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {studentIds.map((sid) => {
+              const s = students.find((st) => st.id === sid);
+              return (
+                <span key={sid} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F97316]/10 border border-[#F97316]/30 text-[#F97316] text-xs">
+                  {s?.full_name ?? sid}
+                  <button type="button" onClick={() => toggleStudent(sid)} className="hover:text-white ml-0.5">×</button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <input
+          type="text"
+          placeholder="Search students..."
+          value={studentSearch}
+          onChange={(e) => setStudentSearch(e.target.value)}
+          className="input-base mb-2"
+        />
+        <div className="max-h-40 overflow-y-auto bg-[#0F172A] border border-[#334155] rounded-lg">
+          {filteredStudents.length === 0 ? (
+            <div className="px-4 py-3 text-[#475569] text-sm">No students found</div>
+          ) : (
+            filteredStudents.map((s) => {
+              const checked = studentIds.includes(s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => toggleStudent(s.id)}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${
+                    checked ? "bg-[#F97316]/10 text-[#F97316]" : "text-[#F8FAFC] hover:bg-[#334155]"
+                  }`}
+                >
+                  <span className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center text-xs ${
+                    checked ? "bg-[#F97316] border-[#F97316] text-white" : "border-[#475569]"
+                  }`}>
+                    {checked && "✓"}
+                  </span>
+                  <span className="truncate">{s.full_name}</span>
+                  <span className="ml-auto text-xs text-[#475569] flex-shrink-0">{s.qualification} {s.exam_board}</span>
+                </button>
+              );
+            })
+          )}
+        </div>
+        {studentIds.length > 1 && (
+          <p className="text-xs text-[#475569] mt-1">
+            Group session — progress will update for all {studentIds.length} students
+          </p>
+        )}
       </Field>
 
       {/* Date + Type */}
@@ -192,9 +255,7 @@ export default function SessionLogForm({
             className="input-base"
           >
             {SESSION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+              <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
         </Field>
@@ -218,13 +279,12 @@ export default function SessionLogForm({
 
       {/* Topics */}
       <Field label="Topics Covered" required>
-        {!studentId ? (
+        {studentIds.length === 0 ? (
           <div className="input-base text-[#475569] cursor-not-allowed">
             Select a student first to see their topics
           </div>
         ) : (
           <div className="relative">
-            {/* Selected chips */}
             {selectedTopics.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {selectedTopicNames.map((name, i) => (
@@ -233,29 +293,21 @@ export default function SessionLogForm({
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F97316]/10 border border-[#F97316]/30 text-[#F97316] text-xs"
                   >
                     {name}
-                    <button
-                      type="button"
-                      onClick={() => toggleTopic(selectedTopics[i])}
-                      className="hover:text-white ml-0.5"
-                    >
-                      ×
-                    </button>
+                    <button type="button" onClick={() => toggleTopic(selectedTopics[i])} className="hover:text-white ml-0.5">×</button>
                   </span>
                 ))}
               </div>
             )}
 
-            {/* Search input */}
             <input
               type="text"
-              placeholder={`Search ${selectedStudent?.qualification} ${selectedStudent?.exam_board} topics...`}
+              placeholder={`Search ${primaryStudent?.qualification} ${primaryStudent?.exam_board} topics...`}
               value={topicSearch}
               onChange={(e) => setTopicSearch(e.target.value)}
               onFocus={() => setTopicsOpen(true)}
               className="input-base"
             />
 
-            {/* Dropdown */}
             {topicsOpen && (
               <div className="absolute z-20 w-full mt-1 bg-[#1E293B] border border-[#334155] rounded-xl shadow-xl max-h-64 overflow-y-auto">
                 {Object.keys(groupedTopics).length === 0 ? (
@@ -274,9 +326,7 @@ export default function SessionLogForm({
                             type="button"
                             onClick={() => toggleTopic(topic.id)}
                             className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${
-                              checked
-                                ? "bg-[#F97316]/10 text-[#F97316]"
-                                : "text-[#F8FAFC] hover:bg-[#334155]"
+                              checked ? "bg-[#F97316]/10 text-[#F97316]" : "text-[#F8FAFC] hover:bg-[#334155]"
                             }`}
                           >
                             <span className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center text-xs ${
@@ -377,7 +427,7 @@ export default function SessionLogForm({
         disabled={submitting}
         className="w-full py-3 px-4 rounded-xl bg-[#F97316] hover:bg-[#FB923C] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors"
       >
-        {submitting ? "Logging session..." : "Log Session"}
+        {submitting ? "Logging session..." : studentIds.length > 1 ? `Log Group Session (${studentIds.length} students)` : "Log Session"}
       </button>
     </form>
   );

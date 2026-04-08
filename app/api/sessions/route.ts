@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
   const {
     student_id,
+    student_ids,
     session_date,
     session_type,
     duration_minutes,
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
   const insertPayload: SessionInsert = {
     tutor_id: user.id,
     student_id,
+    student_ids: student_ids || [student_id],
     session_date: session_date || new Date().toISOString().split("T")[0],
     session_type: session_type || "regular",
     duration_minutes: duration_minutes || 60,

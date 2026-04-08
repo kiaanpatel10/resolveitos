@@ -146,6 +146,7 @@ export type Database = {
           id: string;
           tutor_id: string;
           student_id: string;
+          student_ids: string[] | null;
           session_date: string;
           session_type: "regular" | "mock_review" | "diagnostic" | "revision";
           duration_minutes: number;
@@ -165,6 +166,7 @@ export type Database = {
           id?: string;
           tutor_id: string;
           student_id: string;
+          student_ids?: string[] | null;
           session_date?: string;
           session_type?: "regular" | "mock_review" | "diagnostic" | "revision";
           duration_minutes?: number;
@@ -189,6 +191,7 @@ export type Database = {
           id?: string;
           tutor_id?: string;
           student_id?: string;
+          student_ids?: string[] | null;
           session_date?: string;
           session_type?: "regular" | "mock_review" | "diagnostic" | "revision";
           duration_minutes?: number;
@@ -351,6 +354,105 @@ export type Database = {
           created_at?: string;
         };
       };
+      schedule: {
+        Row: {
+          id: string;
+          tutor_id: string;
+          student_id: string;
+          day_of_week: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+          start_time: string;
+          duration_minutes: number;
+          recurring: boolean;
+          status: "active" | "cancelled" | "paused";
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tutor_id: string;
+          student_id: string;
+          day_of_week: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+          start_time: string;
+          duration_minutes?: number;
+          recurring?: boolean;
+          status?: "active" | "cancelled" | "paused";
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tutor_id?: string;
+          student_id?: string;
+          day_of_week?: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+          start_time?: string;
+          duration_minutes?: number;
+          recurring?: boolean;
+          status?: "active" | "cancelled" | "paused";
+          notes?: string | null;
+          created_at?: string;
+        };
+      };
+      training_modules: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          type: "sop" | "video" | "document";
+          content_url: string | null;
+          content: string | null;
+          order_index: number;
+          required: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          type?: "sop" | "video" | "document";
+          content_url?: string | null;
+          content?: string | null;
+          order_index?: number;
+          required?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          type?: "sop" | "video" | "document";
+          content_url?: string | null;
+          content?: string | null;
+          order_index?: number;
+          required?: boolean;
+          created_at?: string;
+        };
+      };
+      tutor_training_progress: {
+        Row: {
+          id: string;
+          tutor_id: string;
+          module_id: string;
+          status: "not_started" | "in_progress" | "completed";
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tutor_id: string;
+          module_id: string;
+          status?: "not_started" | "in_progress" | "completed";
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tutor_id?: string;
+          module_id?: string;
+          status?: "not_started" | "in_progress" | "completed";
+          completed_at?: string | null;
+          created_at?: string;
+        };
+      };
       invoices: {
         Row: {
           id: string;
@@ -403,3 +505,6 @@ export type StudentTopicProgress =
 export type Resource = Database["public"]["Tables"]["resources"]["Row"];
 export type Assessment = Database["public"]["Tables"]["assessments"]["Row"];
 export type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
+export type Schedule = Database["public"]["Tables"]["schedule"]["Row"];
+export type TrainingModule = Database["public"]["Tables"]["training_modules"]["Row"];
+export type TutorTrainingProgress = Database["public"]["Tables"]["tutor_training_progress"]["Row"];
