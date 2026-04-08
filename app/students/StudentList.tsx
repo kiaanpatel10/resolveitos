@@ -15,6 +15,7 @@ type StudentRow = {
   target_grade: string;
   status: string;
   assigned_tutor_id: string | null;
+  payment_status: string | null;
   tutor: { full_name: string } | null;
   progressPct: number;
   covered: number;
@@ -25,6 +26,13 @@ const STATUS_COLOURS: Record<string, string> = {
   active: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   paused: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   churned: "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+const PAYMENT_COLOURS: Record<string, string> = {
+  paid: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  overdue: "bg-red-500/10 text-red-400 border-red-500/20",
+  trial: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  free: "bg-[#334155] text-[#94A3B8] border-[#475569]",
 };
 
 export default function StudentList({
@@ -154,7 +162,14 @@ export default function StudentList({
                   >
                     <td className="px-4 py-3">
                       <Link href={`/students/${s.id}`} className="block">
-                        <span className="text-[#F8FAFC] font-medium">{s.full_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#F8FAFC] font-medium">{s.full_name}</span>
+                          {s.payment_status && s.payment_status !== "free" && (
+                            <span className={`inline-flex px-1.5 py-0.5 rounded text-xs border capitalize ${PAYMENT_COLOURS[s.payment_status] ?? ""}`}>
+                              {s.payment_status}
+                            </span>
+                          )}
+                        </div>
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-[#94A3B8]">
@@ -226,7 +241,14 @@ export default function StudentList({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-[#F8FAFC] font-medium">{s.full_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[#F8FAFC] font-medium">{s.full_name}</p>
+                      {s.payment_status && s.payment_status !== "free" && (
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-xs border capitalize ${PAYMENT_COLOURS[s.payment_status] ?? ""}`}>
+                          {s.payment_status}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[#94A3B8] text-xs mt-0.5">
                       Y{s.year_group} · {s.qualification} {s.exam_board}
                       {s.tier && s.tier !== "N/A" ? ` · ${s.tier}` : ""}

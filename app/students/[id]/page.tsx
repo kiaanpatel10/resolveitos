@@ -98,6 +98,16 @@ export default async function StudentProfilePage({
     .order("date_taken", { ascending: true });
   const assessments = (assessmentsRaw ?? []) as unknown as AnyRow[];
 
+  // Fetch invoices for this student
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabaseAny = supabase as any;
+  const { data: invoicesRaw } = await supabaseAny
+    .from("invoices")
+    .select("id, amount, status, due_date, paid_date, notes, created_at")
+    .eq("student_id", params.id)
+    .order("created_at", { ascending: false });
+  const invoices = (invoicesRaw ?? []) as unknown as AnyRow[];
+
   return (
     <div className="min-h-screen bg-[#0F172A]">
       <NavBar />
@@ -123,6 +133,8 @@ export default async function StudentProfilePage({
           allTopics={allTopics as any}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           assessments={assessments as any}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          invoices={invoices as any}
           tutors={tutors}
           isAdmin={isAdmin}
         />

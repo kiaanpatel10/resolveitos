@@ -8,6 +8,8 @@ const ADMIN_LINKS = [
   { href: "/students", label: "Students" },
   { href: "/tutors", label: "Tutors" },
   { href: "/resources", label: "Resources" },
+  { href: "/invoices", label: "Invoices" },
+  { href: "/revenue", label: "Revenue" },
   { href: "/log-session", label: "Log Session" },
 ];
 

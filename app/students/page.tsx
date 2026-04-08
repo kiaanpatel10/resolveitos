@@ -7,6 +7,7 @@ type StudentRow = {
   id: string; full_name: string; year_group: number; exam_board: string;
   qualification: string; tier: string | null; current_grade: string | null;
   target_grade: string; status: string; assigned_tutor_id: string | null;
+  payment_status: string | null;
   tutor: { full_name: string } | null;
 };
 type TopicComboRow = { id: string; qualification: string; exam_board: string; tier: string | null };
@@ -31,7 +32,7 @@ export default async function StudentsPage() {
   // Fetch students with tutor name
   let studentsQuery = supabase
     .from("students")
-    .select("id, full_name, year_group, exam_board, qualification, tier, current_grade, target_grade, status, assigned_tutor_id, tutor:profiles!assigned_tutor_id(full_name)")
+    .select("id, full_name, year_group, exam_board, qualification, tier, current_grade, target_grade, status, assigned_tutor_id, payment_status, tutor:profiles!assigned_tutor_id(full_name)")
     .order("full_name");
 
   if (!isAdmin) {

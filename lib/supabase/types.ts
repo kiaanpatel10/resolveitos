@@ -52,6 +52,9 @@ export type Database = {
           parent_email: string | null;
           parent_phone: string | null;
           notes: string | null;
+          payment_status: "paid" | "overdue" | "trial" | "free" | null;
+          monthly_rate: number | null;
+          stripe_customer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -71,6 +74,9 @@ export type Database = {
           parent_email?: string | null;
           parent_phone?: string | null;
           notes?: string | null;
+          payment_status?: "paid" | "overdue" | "trial" | "free" | null;
+          monthly_rate?: number | null;
+          stripe_customer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -90,6 +96,9 @@ export type Database = {
           parent_email?: string | null;
           parent_phone?: string | null;
           notes?: string | null;
+          payment_status?: "paid" | "overdue" | "trial" | "free" | null;
+          monthly_rate?: number | null;
+          stripe_customer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -343,6 +352,42 @@ export type Database = {
         };
       };
     };
+      invoices: {
+        Row: {
+          id: string;
+          student_id: string;
+          amount: number;
+          status: "draft" | "sent" | "paid" | "overdue";
+          due_date: string;
+          paid_date: string | null;
+          stripe_invoice_id: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          student_id: string;
+          amount: number;
+          status?: "draft" | "sent" | "paid" | "overdue";
+          due_date: string;
+          paid_date?: string | null;
+          stripe_invoice_id?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          student_id?: string;
+          amount?: number;
+          status?: "draft" | "sent" | "paid" | "overdue";
+          due_date?: string;
+          paid_date?: string | null;
+          stripe_invoice_id?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+      };
+    };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: Record<string, never>;
@@ -358,3 +403,4 @@ export type StudentTopicProgress =
   Database["public"]["Tables"]["student_topic_progress"]["Row"];
 export type Resource = Database["public"]["Tables"]["resources"]["Row"];
 export type Assessment = Database["public"]["Tables"]["assessments"]["Row"];
+export type Invoice = Database["public"]["Tables"]["invoices"]["Row"];

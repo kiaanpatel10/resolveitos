@@ -15,11 +15,23 @@ type Student = {
   start_date: string;
   status: string;
   assigned_tutor_id: string | null;
+  payment_status: string | null;
+  monthly_rate: number | null;
   parent_name: string | null;
   parent_email: string | null;
   parent_phone: string | null;
   notes: string | null;
   tutor: { id: string; full_name: string } | null;
+};
+
+type InvoiceRow = {
+  id: string;
+  amount: number;
+  status: string;
+  due_date: string;
+  paid_date: string | null;
+  notes: string | null;
+  created_at: string;
 };
 
 type TopicRow = {
@@ -95,7 +107,21 @@ const STATUS_COLOUR: Record<string, string> = {
   churned: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
-type Tab = "progress" | "sessions" | "assessments" | "details";
+const PAYMENT_COLOUR: Record<string, string> = {
+  paid: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  overdue: "bg-red-500/10 text-red-400 border-red-500/20",
+  trial: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  free: "bg-[#334155] text-[#94A3B8] border-[#475569]",
+};
+
+const INVOICE_STATUS_COLOUR: Record<string, string> = {
+  draft: "bg-[#334155] text-[#94A3B8] border-[#475569]",
+  sent: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  paid: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  overdue: "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+type Tab = "progress" | "sessions" | "assessments" | "invoices" | "details";
 
 export default function StudentProfile({
   student,
@@ -104,6 +130,7 @@ export default function StudentProfile({
   sessions,
   allTopics,
   assessments,
+  invoices,
   tutors,
   isAdmin,
 }: {
@@ -113,6 +140,7 @@ export default function StudentProfile({
   sessions: SessionRow[];
   allTopics: TopicMapRow[];
   assessments: AssessmentRow[];
+  invoices: InvoiceRow[];
   tutors: { id: string; full_name: string }[];
   isAdmin: boolean;
 }) {
@@ -187,12 +215,12 @@ export default function StudentProfile({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#1E293B] border border-[#334155] rounded-xl p-1">
-        {(["progress", "sessions", "assessments", "details"] as Tab[]).map((tab) => (
+      <div className="flex gap-1 bg-[#1E293B] border border-[#334155] rounded-xl p-1 flex-wrap">
+        {(["progress", "sessions", "assessments", "invoices", "details"] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors min-w-fit ${
               activeTab === tab
                 ? "bg-[#334155] text-[#F8FAFC]"
                 : "text-[#94A3B8] hover:text-[#F8FAFC]"
@@ -204,6 +232,9 @@ export default function StudentProfile({
             )}
             {tab === "assessments" && assessments.length > 0 && (
               <span className="ml-1.5 text-xs text-[#475569]">({assessments.length})</span>
+            )}
+            {tab === "invoices" && invoices.length > 0 && (
+              <span className="ml-1.5 text-xs text-[#475569]">({invoices.length})</span>
             )}
           </button>
         ))}
@@ -227,6 +258,13 @@ export default function StudentProfile({
           assessments={assessments}
           studentId={student.id}
           topicNameMap={topicNameMap}
+        />
+      )}
+      {activeTab === "invoices" && (
+        <InvoicesTab
+          invoices={invoices}
+          studentId={student.id}
+          isAdmin={isAdmin}
         />
       )}
       {activeTab === "details" && (
@@ -793,6 +831,249 @@ function LogAssessmentModal({
   );
 }
 
+// ─── Invoices Tab ─────────────────────────────────────────────────────────────
+
+function InvoicesTab({
+  invoices: initialInvoices,
+  studentId,
+  isAdmin,
+}: {
+  invoices: InvoiceRow[];
+  studentId: string;
+  isAdmin: boolean;
+}) {
+  const [invoices, setInvoices] = useState(initialInvoices);
+  const [showForm, setShowForm] = useState(false);
+
+  const sorted = [...invoices].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  const outstanding = invoices
+    .filter((i) => i.status === "overdue" || i.status === "sent")
+    .reduce((sum, i) => sum + i.amount, 0);
+
+  async function markPaid(id: string) {
+    const res = await fetch(`/api/invoices/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "paid", paid_date: new Date().toISOString().split("T")[0] }),
+    });
+    if (res.ok) {
+      setInvoices((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, status: "paid", paid_date: new Date().toISOString().split("T")[0] } : i))
+      );
+      toast.success("Marked as paid");
+    } else {
+      toast.error("Failed to update");
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[#475569] text-sm">{sorted.length} invoice{sorted.length !== 1 ? "s" : ""}</p>
+          {outstanding > 0 && (
+            <p className="text-red-400 text-xs mt-0.5">£{outstanding.toFixed(2)} outstanding</p>
+          )}
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-3 py-1.5 rounded-lg bg-[#F97316] hover:bg-[#FB923C] text-white text-xs font-medium transition-colors"
+          >
+            + Create Invoice
+          </button>
+        )}
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="text-center py-16 text-[#475569]">No invoices yet</div>
+      ) : (
+        <div className="space-y-3">
+          {sorted.map((inv) => (
+            <div key={inv.id} className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[#F8FAFC] font-semibold">£{inv.amount.toFixed(2)}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded border capitalize ${INVOICE_STATUS_COLOUR[inv.status] ?? ""}`}>
+                      {inv.status}
+                    </span>
+                  </div>
+                  <p className="text-[#475569] text-xs mt-1">
+                    Due: {new Date(inv.due_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    {inv.paid_date && (
+                      <span className="ml-2 text-emerald-400">
+                        · Paid: {new Date(inv.paid_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      </span>
+                    )}
+                  </p>
+                  {inv.notes && <p className="text-[#94A3B8] text-xs mt-1">{inv.notes}</p>}
+                </div>
+                {isAdmin && (inv.status === "sent" || inv.status === "overdue") && (
+                  <button
+                    onClick={() => markPaid(inv.id)}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex-shrink-0"
+                  >
+                    Mark paid
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm && (
+        <CreateInvoiceModal
+          studentId={studentId}
+          onClose={() => setShowForm(false)}
+          onSuccess={(inv) => {
+            setInvoices((prev) => [...prev, inv]);
+            setShowForm(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CreateInvoiceModal({
+  studentId,
+  onClose,
+  onSuccess,
+}: {
+  studentId: string;
+  onClose: () => void;
+  onSuccess: (inv: InvoiceRow) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    amount: "",
+    due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    notes: "",
+    status: "draft",
+  });
+
+  function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+    return (
+      <div>
+        <label className="block text-xs font-medium text-[#94A3B8] mb-1.5">
+          {label}
+          {required && <span className="text-[#F97316] ml-0.5">*</span>}
+        </label>
+        {children}
+      </div>
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.amount) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: studentId,
+          amount: parseFloat(form.amount),
+          due_date: form.due_date,
+          notes: form.notes || null,
+          status: form.status,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to create invoice");
+        return;
+      }
+      toast.success("Invoice created");
+      onSuccess(data.invoice);
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-2xl w-full max-w-md shadow-2xl">
+          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#334155]">
+            <h2 className="text-[#F8FAFC] font-semibold">Create Invoice</h2>
+            <button onClick={onClose} className="text-[#475569] hover:text-[#94A3B8] text-lg leading-none">×</button>
+          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Amount (£)" required>
+                <input
+                  type="number"
+                  value={form.amount}
+                  onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+                  placeholder="e.g. 120"
+                  className="input-base"
+                  min={0}
+                  step={0.01}
+                  required
+                />
+              </Field>
+              <Field label="Status">
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                  className="input-base"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="sent">Sent</option>
+                </select>
+              </Field>
+            </div>
+            <Field label="Due Date" required>
+              <input
+                type="date"
+                value={form.due_date}
+                onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
+                className="input-base"
+                required
+              />
+            </Field>
+            <Field label="Notes">
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={2}
+                placeholder="e.g. April sessions"
+                className="input-base resize-none"
+              />
+            </Field>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-lg bg-[#F97316] hover:bg-[#FB923C] disabled:opacity-50 text-white text-sm font-medium transition-colors"
+              >
+                {saving ? "Creating..." : "Create Invoice"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-lg border border-[#334155] text-[#94A3B8] hover:text-[#F8FAFC] text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Details Tab ──────────────────────────────────────────────────────────────
 
 function DetailsTab({
@@ -810,6 +1091,8 @@ function DetailsTab({
     current_grade: student.current_grade ?? "",
     target_grade: student.target_grade,
     status: student.status,
+    payment_status: student.payment_status ?? "free",
+    monthly_rate: student.monthly_rate?.toString() ?? "",
     assigned_tutor_id: student.assigned_tutor_id ?? "",
     parent_name: student.parent_name ?? "",
     parent_email: student.parent_email ?? "",
@@ -827,6 +1110,8 @@ function DetailsTab({
           current_grade: form.current_grade || null,
           target_grade: form.target_grade,
           status: form.status,
+          payment_status: form.payment_status,
+          monthly_rate: form.monthly_rate ? parseFloat(form.monthly_rate) : null,
           assigned_tutor_id: form.assigned_tutor_id || null,
           parent_name: form.parent_name || null,
           parent_email: form.parent_email || null,
@@ -907,6 +1192,25 @@ function DetailsTab({
                   <option value="churned">Churned</option>
                 </select>
               </div>
+              <div>
+                <p className="text-[#475569] text-xs mb-1">Payment Status</p>
+                <select
+                  value={form.payment_status}
+                  onChange={(e) => setForm((f) => ({ ...f, payment_status: e.target.value }))}
+                  className="input-base text-xs py-1.5"
+                >
+                  <option value="free">Free</option>
+                  <option value="trial">Trial</option>
+                  <option value="paid">Paid</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+              </div>
+              <EditRow
+                label="Monthly Rate (£)"
+                value={form.monthly_rate}
+                onChange={(v) => setForm((f) => ({ ...f, monthly_rate: v }))}
+                placeholder="e.g. 120"
+              />
               {isAdmin && tutors.length > 0 && (
                 <div>
                   <p className="text-[#475569] text-xs mb-1">Assigned Tutor</p>
@@ -930,6 +1234,17 @@ function DetailsTab({
               <DetailRow label="Current Grade" value={student.current_grade ?? "—"} />
               <DetailRow label="Target Grade" value={student.target_grade} highlight />
               <DetailRow label="Status" value={student.status} capitalize />
+              <div>
+                <p className="text-[#475569] text-xs mb-0.5">Payment</p>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex px-2 py-0.5 rounded border text-xs capitalize ${PAYMENT_COLOUR[student.payment_status ?? "free"] ?? ""}`}>
+                    {student.payment_status ?? "free"}
+                  </span>
+                  {student.monthly_rate && (
+                    <span className="text-[#94A3B8] text-sm">£{student.monthly_rate}/mo</span>
+                  )}
+                </div>
+              </div>
               <DetailRow label="Tutor" value={student.tutor?.full_name ?? "Unassigned"} />
             </>
           )}

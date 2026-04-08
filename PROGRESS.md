@@ -100,6 +100,39 @@ All tables created and live:
 
 ---
 
+---
+
+### Phase 3: Payments & Revenue
+
+#### Payment Status on Students ✅ BUILT
+- `payment_status` ('paid'/'overdue'/'trial'/'free') and `monthly_rate` fields added to students table
+- Payment badge shown next to student name on `/students` list (green/red/amber, hidden when free)
+- Payment status and monthly rate editable in student profile Details tab
+
+#### Invoicing System ✅ BUILT
+- `invoices` table with RLS (admins full access, tutors read-only for their students)
+- **Invoices tab** on every student profile: create invoice modal, mark-paid inline, outstanding total
+- **`/invoices`** admin page: full invoice list with summary stats (outstanding, collected, total), status filter, mark-paid, create invoice modal
+- API routes: `GET/POST /api/invoices`, `PATCH /api/invoices/[id]`
+
+#### Revenue Dashboard (`/revenue`) ✅ BUILT
+- **MRR** (sum of monthly_rate for paid active students)
+- **This Month** revenue (paid invoices with paid_date in current month)
+- **Outstanding** (sent + overdue invoices)
+- **Total Collected** (all time)
+- **6-month SVG bar chart** of revenue collected by month
+- **Payment status breakdown** (paid / overdue / trial / free counts for active students)
+
+#### Stripe Prep ✅ BUILT
+- `stripe_customer_id` column on students table (migration 005)
+- `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` env vars added to `.env.local`
+- Placeholder webhook handler at `POST /api/stripe/webhook`
+
+#### Nav Updates ✅ BUILT
+- Invoices and Revenue links added to admin nav
+
+---
+
 ## What's Left to Build
 
 ### MVP Gaps (should finish before onboarding tutors)
